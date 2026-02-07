@@ -2,35 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Crystal Block Dislocations</title>
+  <title>Materials Science Interactive Models</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .header { display: flex; gap: 20px; margin-bottom: 20px; }
+    .header button { padding: 10px 20px; cursor: pointer; }
+    .model-container { display: none; }
+    .active { display: block; }
+    label { margin-right: 10px; }
+  </style>
 </head>
 <body>
-  <h2>3D Crystal Block: Edge vs Screw Dislocation</h2>
+  <h1>Materials Science Interactive Models</h1>
+  <div class="header">
+    <button onclick="showModel('dislocation')">1D/3D Dislocations</button>
+    <button onclick="showModel('grain')">2D Grain Boundary</button>
+  </div>
 
-  <label for="dislocationType">Dislocation Type:</label>
-  <select id="dislocationType">
-    <option value="Edge">Edge</option>
-    <option value="Screw">Screw</option>
-  </select>
+  <!-- ---------------- Dislocation Model ---------------- -->
+  <div id="dislocation" class="model-container active">
+    <h2>3D Crystal Block: Edge vs Screw Dislocation</h2>
+    <label for="dislocationType">Dislocation Type:</label>
+    <select id="dislocationType">
+      <option value="Edge">Edge</option>
+      <option value="Screw">Screw</option>
+    </select>
 
-  <label for="dislocationPosition">Dislocation X Position:</label>
-  <input type="range" id="dislocationPosition" min="2" max="8" step="0.1" value="5">
+    <label for="dislocationPosition">Dislocation X Position:</label>
+    <input type="range" id="dislocationPosition" min="2" max="18" step="0.1" value="10">
 
-  <div id="plot" style="width:90%;max-width:900px;height:600px;"></div>
+    <div id="dislocationPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
+  </div>
+
+  <!-- ---------------- Grain Boundary Model ---------------- -->
+  <div id="grain" class="model-container">
+    <h2>2D Grain Boundary Model</h2>
+    <label for="angle">Grain Misorientation Angle (degrees):</label>
+    <input type="range" id="angle" min="0" max="45" step="1" value="15">
+
+    <div id="grainPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
+  </div>
 
   <script>
-    const nx = 20; // atoms along x
-    const ny = 10; // atoms along y
-    const nz = 5;  // planes along z
-    const b = 1.0; // Burgers vector magnitude
+    // ---------------- Tab Function ----------------
+    function showModel(id) {
+      document.querySelectorAll('.model-container').forEach(div => div.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
 
-    // Generate lattice coordinates
+    // ---------------- 3D Dislocation Model ----------------
+    const nx = 20, ny = 10, nz = 5, b = 1.0;
     function generateLattice() {
       let X = [], Y = [], Z = [];
-      for (let k = 0; k < nz; k++) {
-        for (let j = 0; j < ny; j++) {
-          for (let i = 0; i < nx; i++) {
+      for (let k=0; k<nz; k++) {
+        for (let j=0; j<ny; j++) {
+          for (let i=0; i<nx; i++) {
             X.push(i);
             Y.push(j);
             Z.push(k);
@@ -44,54 +71,85 @@
       return X.map(xi => (xi >= dislocX ? b : 0));
     }
 
-    function screwDisplacement(X, Y, dislocX) {
-      return X.map((xi, idx) => b/(2*Math.PI) * Math.atan(xi - dislocX));
+    function screwDisplacement(X, dislocX) {
+      return X.map(xi => b/(2*Math.PI) * Math.atan(xi - dislocX));
     }
 
-    function updatePlot() {
+    function updateDislocation() {
       const type = document.getElementById("dislocationType").value;
       const dislocX = parseFloat(document.getElementById("dislocationPosition").value);
       const lattice = generateLattice();
 
       let Z_new;
       if (type === "Edge") {
-        // Edge: extra half-plane along x >= dislocX
         const dz = edgeDisplacement(lattice.X, dislocX);
         Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
       } else {
-        // Screw: helical twist around dislocation line
-        const dz = screwDisplacement(lattice.X, lattice.Y, dislocX);
+        const dz = screwDisplacement(lattice.X, dislocX);
         Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
       }
 
       const trace = {
-        x: lattice.X,
-        y: lattice.Y,
-        z: Z_new,
-        mode: 'markers',
-        type: 'scatter3d',
+        x: lattice.X, y: lattice.Y, z: Z_new,
+        mode: 'markers', type: 'scatter3d',
         marker: {size: 4, color: Z_new, colorscale: 'Viridis'}
       };
 
       const layout = {
         title: `${type} Dislocation at X = ${dislocX.toFixed(2)}`,
-        scene: {
-          xaxis: {title: 'X (Slip direction)'},
-          yaxis: {title: 'Y (Width)'},
-          zaxis: {title: 'Z (Stacking planes)'},
-          camera: {eye: {x: 1.5, y: 1.5, z: 1.5}}
-        }
+        scene: {xaxis:{title:'X'}, yaxis:{title:'Y'}, zaxis:{title:'Z'}}
       };
 
-      Plotly.newPlot('plot', [trace], layout);
+      Plotly.newPlot('dislocationPlot', [trace], layout);
     }
 
-    // Initial plot
-    updatePlot();
+    document.getElementById("dislocationType").addEventListener("change", updateDislocation);
+    document.getElementById("dislocationPosition").addEventListener("input", updateDislocation);
+    updateDislocation();
 
-    // Event listeners
-    document.getElementById("dislocationType").addEventListener("change", updatePlot);
-    document.getElementById("dislocationPosition").addEventListener("input", updatePlot);
+    // ---------------- 2D Grain Boundary Model ----------------
+    const nx_g = 20, ny_g = 20;
+    function generateGrains(angleDeg) {
+      const X = [], Y = [], Z = [];
+      const angleRad = angleDeg * Math.PI / 180;
+      for (let i=0; i<nx_g; i++) {
+        for (let j=0; j<ny_g; j++) {
+          // Grain 1
+          X.push(i);
+          Y.push(j);
+          Z.push(0);
+          // Grain 2 rotated by angle
+          const x_rot = i * Math.cos(angleRad) - j * Math.sin(angleRad) + nx_g/2;
+          const y_rot = i * Math.sin(angleRad) + j * Math.cos(angleRad);
+          X.push(x_rot);
+          Y.push(y_rot);
+          Z.push(1);  // separate plane
+        }
+      }
+      return {X, Y, Z};
+    }
+
+    function updateGrainBoundary() {
+      const angle = parseFloat(document.getElementById("angle").value);
+      const lattice = generateGrains(angle);
+
+      const trace = {
+        x: lattice.X, y: lattice.Y, z: lattice.Z,
+        mode: 'markers', type: 'scatter3d',
+        marker: {size: 4, color: lattice.Z, colorscale: 'Cividis'}
+      };
+
+      const layout = {
+        title: `2D Grain Boundary at ${angle}° Misorientation`,
+        scene: {xaxis:{title:'X'}, yaxis:{title:'Y'}, zaxis:{title:'Grain Layer'}}
+      };
+
+      Plotly.newPlot('grainPlot', [trace], layout);
+    }
+
+    document.getElementById("angle").addEventListener("input", updateGrainBoundary);
+    updateGrainBoundary();
+
   </script>
 </body>
 </html>
