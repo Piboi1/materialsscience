@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Dislocation Interactive Model</title>
+  <title>3D Crystal Block Dislocations</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-  <h2>3D 1D Dislocation Model</h2>
+  <h2>3D Crystal Block: Edge vs Screw Dislocation</h2>
 
   <label for="dislocationType">Dislocation Type:</label>
   <select id="dislocationType">
@@ -14,51 +14,72 @@
     <option value="Screw">Screw</option>
   </select>
 
-  <label for="position">Dislocation Position:</label>
-  <input type="range" id="position" min="0" max="10" step="0.1" value="5">
+  <label for="dislocationPosition">Dislocation X Position:</label>
+  <input type="range" id="dislocationPosition" min="2" max="8" step="0.1" value="5">
 
   <div id="plot" style="width:90%;max-width:900px;height:600px;"></div>
 
   <script>
-    // Lattice points
-    const N = 50;  // fewer points for 3D clarity
-    const x = Array.from({length: N}, (_, i) => i * 10 / (N-1));
-    const y = Array.from({length: N}, () => 0);  // y positions fixed
-    const b = 1.0;  // Burgers vector
+    const nx = 20; // atoms along x
+    const ny = 10; // atoms along y
+    const nz = 5;  // planes along z
+    const b = 1.0; // Burgers vector magnitude
 
-    // Displacement functions
-    function displacementEdge(x, x0, b) {
-      return x.map(xi => (b / 2) * Math.sign(xi - x0) * (1 - Math.exp(-Math.abs(xi - x0))));
+    // Generate lattice coordinates
+    function generateLattice() {
+      let X = [], Y = [], Z = [];
+      for (let k = 0; k < nz; k++) {
+        for (let j = 0; j < ny; j++) {
+          for (let i = 0; i < nx; i++) {
+            X.push(i);
+            Y.push(j);
+            Z.push(k);
+          }
+        }
+      }
+      return {X, Y, Z};
     }
 
-    function displacementScrew(x, x0, b) {
-      return x.map(xi => (b / (2*Math.PI)) * Math.atan(xi - x0));
+    function edgeDisplacement(X, dislocX) {
+      return X.map(xi => (xi >= dislocX ? b : 0));
+    }
+
+    function screwDisplacement(X, Y, dislocX) {
+      return X.map((xi, idx) => b/(2*Math.PI) * Math.atan(xi - dislocX));
     }
 
     function updatePlot() {
       const type = document.getElementById("dislocationType").value;
-      const x0 = parseFloat(document.getElementById("position").value);
+      const dislocX = parseFloat(document.getElementById("dislocationPosition").value);
+      const lattice = generateLattice();
 
-      const z = (type === "Edge") ? displacementEdge(x, x0, b) : displacementScrew(x, x0, b);
+      let Z_new;
+      if (type === "Edge") {
+        // Edge: extra half-plane along x >= dislocX
+        const dz = edgeDisplacement(lattice.X, dislocX);
+        Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
+      } else {
+        // Screw: helical twist around dislocation line
+        const dz = screwDisplacement(lattice.X, lattice.Y, dislocX);
+        Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
+      }
 
-      // 3D lattice line
       const trace = {
-        x: x,
-        y: y,
-        z: z,
-        mode: 'lines+markers',
+        x: lattice.X,
+        y: lattice.Y,
+        z: Z_new,
+        mode: 'markers',
         type: 'scatter3d',
-        line: {color: 'blue', width: 6},
-        marker: {size: 4, color: 'red'}
+        marker: {size: 4, color: Z_new, colorscale: 'Viridis'}
       };
 
       const layout = {
-        title: `${type} Dislocation at x = ${x0.toFixed(2)}`,
+        title: `${type} Dislocation at X = ${dislocX.toFixed(2)}`,
         scene: {
-          xaxis: {title: 'Lattice Position X'},
-          yaxis: {title: 'Lattice Line Y'},
-          zaxis: {title: 'Displacement Z', range: [-1.5, 1.5]},
-          camera: {eye: {x: 1.5, y: 1.5, z: 1}}
+          xaxis: {title: 'X (Slip direction)'},
+          yaxis: {title: 'Y (Width)'},
+          zaxis: {title: 'Z (Stacking planes)'},
+          camera: {eye: {x: 1.5, y: 1.5, z: 1.5}}
         }
       };
 
@@ -70,7 +91,7 @@
 
     // Event listeners
     document.getElementById("dislocationType").addEventListener("change", updatePlot);
-    document.getElementById("position").addEventListener("input", updatePlot);
+    document.getElementById("dislocationPosition").addEventListener("input", updatePlot);
   </script>
 </body>
 </html>
