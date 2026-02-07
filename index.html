@@ -109,6 +109,63 @@ label { margin-right: 10px; }
 <div id="schottkyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
+<!-- ---------------- Material Processing Models ---------------- -->
+<div id="photolithography" class="model-container">
+<h2>Photolithography / UV Lithography</h2>
+<p>Shine UV through patterned mask → resist changes → weak parts wash away → pattern left. Used in chips, CPUs, memory, smartphones.</p>
+<label for="photoDepth">Pattern Development:</label>
+<input type="range" id="photoDepth" min="0" max="1" step="0.01" value="0.5">
+<div id="photoPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="wetEtching" class="model-container">
+<h2>Wet Etching</h2>
+<p>Submerge material in acid/base → chemical reaction removes material isotropically (all directions). Fast, cheap, less precise.</p>
+<label for="wetDepth">Etch Depth:</label>
+<input type="range" id="wetDepth" min="0" max="1" step="0.01" value="0.3">
+<div id="wetPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="dryEtching" class="model-container">
+<h2>Dry Etching / Plasma Etching</h2>
+<p>Bombard surface with plasma → removes material anisotropically (vertical). Precision micro/nano fabrication.</p>
+<label for="dryDepth">Etch Depth:</label>
+<input type="range" id="dryDepth" min="0" max="1" step="0.01" value="0.4">
+<div id="dryPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="milling" class="model-container">
+<h2>Milling / Mechanical Machining / Grinding</h2>
+<p>Physical cutting tools remove material. Used for metal parts, engines, screws. CNC machines automate precision cutting.</p>
+<label for="millDepth">Cut Depth:</label>
+<input type="range" id="millDepth" min="0" max="1" step="0.01" value="0.5">
+<div id="millPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="laser" class="model-container">
+<h2>Laser Ablation</h2>
+<p>Laser vaporizes material at focal point. Precision removal, surface cleaning, microstructures. No contact = no contamination.</p>
+<label for="laserDepth">Ablation Depth:</label>
+<input type="range" id="laserDepth" min="0" max="1" step="0.01" value="0.4">
+<div id="laserPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="thinFilm" class="model-container">
+<h2>Thin Film Patterning</h2>
+<p>Deposit uniform thin film → lithography + etching removes parts → create complex multi-layer patterns. Used in multi-layer chips.</p>
+<label for="filmDepth">Pattern Depth:</label>
+<input type="range" id="filmDepth" min="0" max="1" step="0.01" value="0.5">
+<div id="filmPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+
+<div id="ionBeam" class="model-container">
+<h2>Ion Beam Lithography</h2>
+<p>Focused ion beam sputters atoms in precise patterns. Ultra-accurate, slow, used in nanoscale prototyping.</p>
+<label for="ionDepth">Sputter Depth:</label>
+<input type="range" id="ionDepth" min="0" max="1" step="0.01" value="0.3">
+<div id="ionPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
+</div>
+  
 <script>
 // ---------------- Tab Function ----------------
 function showModel(id) {
@@ -252,6 +309,51 @@ plotPointDefect('interstitial','interstitialPlot');
 plotPointDefect('impurity','impurityPlot');
 plotPointDefect('frenkel','frenkelPlot');
 plotPointDefect('schottky','schottkyPlot');
+
+// ---------------- Material Processing Visualizations ----------------
+function plotBlock(divId,depth){
+  const size=10;
+  const X=[],Y=[],Z=[],C=[];
+  for(let i=0;i<=size;i++) for(let j=0;j<=size;j++){
+    X.push(i); Y.push(j); 
+    Z.push(size - depth*size); // simulate removed material
+    C.push('orange');
+  }
+  Plotly.newPlot(divId,[{
+    x:X, y:Y, z:Z, type:'scatter3d', mode:'markers',
+    marker:{size:4,color:C}
+  }],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+}
+
+// Interactive sliders
+const photoSlider = document.getElementById('photoDepth');
+photoSlider.addEventListener('input',()=>plotBlock('photoPlot',photoSlider.value));
+
+const wetSlider = document.getElementById('wetDepth');
+wetSlider.addEventListener('input',()=>plotBlock('wetPlot',wetSlider.value));
+
+const drySlider = document.getElementById('dryDepth');
+drySlider.addEventListener('input',()=>plotBlock('dryPlot',drySlider.value));
+
+const millSlider = document.getElementById('millDepth');
+millSlider.addEventListener('input',()=>plotBlock('millPlot',millSlider.value));
+
+const laserSlider = document.getElementById('laserDepth');
+laserSlider.addEventListener('input',()=>plotBlock('laserPlot',laserSlider.value));
+
+const filmSlider = document.getElementById('filmDepth');
+filmSlider.addEventListener('input',()=>plotBlock('filmPlot',filmSlider.value));
+
+const ionSlider = document.getElementById('ionDepth');
+ionSlider.addEventListener('input',()=>plotBlock('ionPlot',ionSlider.value));
+// Initialize all plots
+plotBlock('photoPlot',photoSlider.value);
+plotBlock('wetPlot',wetSlider.value);
+plotBlock('dryPlot',drySlider.value);
+plotBlock('millPlot',millSlider.value);
+plotBlock('laserPlot',laserSlider.value);
+plotBlock('filmPlot',filmSlider.value);
+plotBlock('ionPlot',ionSlider.value);
 </script>
 </body>
 </html>
