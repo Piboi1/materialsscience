@@ -87,7 +87,7 @@ label { margin-right: 10px; }
 
 <div id="interstitial" class="model-container">
 <h2>Interstitial</h2>
-<p>Extra atom squeezed into a gap. Red atom is off-lattice, demonstrating misplacement.</p>
+<p>Extra atom squeezed into a gap. Red atom is off-lattice, clearly showing misplacement.</p>
 <div id="interstitialPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
@@ -105,7 +105,7 @@ label { margin-right: 10px; }
 
 <div id="schottky" class="model-container">
 <h2>Schottky Defect</h2>
-<p>Positive and negative ions both missing to maintain charge balance. "+" and "−" labels show missing ion positions.</p>
+<p>Positive and negative ions are missing from their original lattice sites and move to nearby positions. "+" and "−" labels show the moved ions, colored spheres indicate new positions.</p>
 <div id="schottkyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
@@ -160,7 +160,7 @@ function updateGrainBoundary(){
 document.getElementById("angle").addEventListener("input",updateGrainBoundary);
 updateGrainBoundary();
 
-// ---------------- Crystal Structures with Boxes/Spheres ----------------
+// ---------------- Crystal Structures ----------------
 function plotCubicWithBox(type,divId){
   const L=2;
   let X=[],Y=[],Z=[],linesX=[],linesY=[],linesZ=[];
@@ -213,9 +213,8 @@ plotCubicWithBox('SC','scPlot');
 function plotPointDefect(type,divId){
   const L=2;
   const X=[],Y=[],Z=[],C=[],text=[];
-  // 3x3x3 simple cubic lattice
   for(let i=0;i<3;i++) for(let j=0;j<3;j++) for(let k=0;k<3;k++){X.push(i*L);Y.push(j*L);Z.push(k*L); C.push('blue'); text.push('');}
-  
+
   if(type==="vacancy"){ 
     const idx=X.length/2|0; X.splice(idx,1); Y.splice(idx,1); Z.splice(idx,1); C.splice(idx,1); text.splice(idx,1);}
   
@@ -233,8 +232,15 @@ function plotPointDefect(type,divId){
     text[idx]='';} 
   
   if(type==="schottky"){ 
-    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1); text.splice(0,1); text.push('+'); 
-    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1); text.splice(text.length-1,1); text.push('−'); 
+    // remove two atoms (original positions)
+    const pos1={x:X[0],y:Y[0],z:Z[0]};
+    const pos2={x:X[X.length-1],y:Y[Y.length-1],z:Z[Z.length-1]};
+    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1); text.splice(0,1);
+    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1); text.splice(text.length-1,1);
+
+    // add moved ions nearby with colors and labels
+    X.push(pos1.x+0.5); Y.push(pos1.y+0.3); Z.push(pos1.z+0.2); C.push('red'); text.push('+');
+    X.push(pos2.x+0.4); Y.push(pos2.y+0.6); Z.push(pos2.z+0.2); C.push('green'); text.push('−');
   }
 
   Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers+text',marker:{size:6,color:C},text:text,textposition:'top center'}],
@@ -246,7 +252,6 @@ plotPointDefect('interstitial','interstitialPlot');
 plotPointDefect('impurity','impurityPlot');
 plotPointDefect('frenkel','frenkelPlot');
 plotPointDefect('schottky','schottkyPlot');
-
 </script>
 </body>
 </html>
