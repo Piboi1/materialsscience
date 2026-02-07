@@ -6,8 +6,8 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; }
-.header { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-.header button { padding: 10px 20px; cursor: pointer; margin-bottom: 5px; }
+.header { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.header button { padding: 8px 16px; cursor: pointer; margin-bottom: 5px; }
 .model-container { display: none; margin-top: 20px; }
 .active { display: block; }
 label { margin-right: 10px; }
@@ -15,21 +15,38 @@ label { margin-right: 10px; }
 </head>
 <body>
 <h1>Materials Science Interactive Models</h1>
+
 <div class="header">
+  <!-- Dislocations & Grain Boundaries -->
   <button onclick="showModel('dislocation')">3D Dislocations</button>
   <button onclick="showModel('grain')">2D Grain Boundary</button>
+
+  <!-- Crystal Structures -->
   <button onclick="showModel('fcc')">FCC</button>
   <button onclick="showModel('bcc')">BCC</button>
   <button onclick="showModel('hcp')">HCP</button>
   <button onclick="showModel('sc')">SC</button>
+
+  <!-- Point Defects -->
   <button onclick="showModel('vacancy')">Vacancy</button>
   <button onclick="showModel('interstitial')">Interstitial</button>
   <button onclick="showModel('impurity')">Impurity</button>
   <button onclick="showModel('frenkel')">Frenkel Defect</button>
   <button onclick="showModel('schottky')">Schottky Defect</button>
+
+  <!-- Material Processing -->
+  <button onclick="showModel('photolithography')">Photolithography</button>
+  <button onclick="showModel('wetEtching')">Wet Etching</button>
+  <button onclick="showModel('dryEtching')">Dry Etching</button>
+  <button onclick="showModel('milling')">Milling</button>
+  <button onclick="showModel('laser')">Laser Ablation</button>
+  <button onclick="showModel('thinFilm')">Thin Film Patterning</button>
+  <button onclick="showModel('ionBeam')">Ion Beam Lithography</button>
 </div>
 
-<!-- 3D Dislocation Model -->
+<!-- ---------------- Models ---------------- -->
+
+<!-- 3D Dislocation -->
 <div id="dislocation" class="model-container active">
 <h2>3D Crystal Block: Edge vs Screw Dislocation</h2>
 <label for="dislocationType">Dislocation Type:</label>
@@ -42,36 +59,33 @@ label { margin-right: 10px; }
 <div id="dislocationPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
 </div>
 
-<!-- 2D Grain Boundary Model -->
+<!-- 2D Grain Boundary -->
 <div id="grain" class="model-container">
-<h2>2D Grain Boundary Model</h2>
+<h2>2D Grain Boundary</h2>
 <label for="angle">Grain Misorientation Angle (degrees):</label>
 <input type="range" id="angle" min="0" max="45" step="1" value="15">
 <div id="grainPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
 </div>
 
-<!-- FCC Crystal -->
+<!-- Crystal Structures -->
 <div id="fcc" class="model-container">
 <h2>Face-Centered Cubic (FCC)</h2>
 <p>Atoms at 8 corners + 6 face centers. Packing efficiency 74%. Examples: Copper, Aluminum, Gold.</p>
 <div id="fccPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
-<!-- BCC Crystal -->
 <div id="bcc" class="model-container">
 <h2>Body-Centered Cubic (BCC)</h2>
 <p>Atoms at 8 corners + 1 center. Packing efficiency 68%. Example: Iron.</p>
 <div id="bccPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
-<!-- HCP Crystal -->
 <div id="hcp" class="model-container">
 <h2>Hexagonal Close-Packed (HCP)</h2>
 <p>ABAB layering pattern. Packing efficiency 74%. Examples: Zinc, Magnesium.</p>
 <div id="hcpPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
-<!-- SC Crystal -->
 <div id="sc" class="model-container">
 <h2>Simple Cubic (SC)</h2>
 <p>Atoms only at corners. Packing efficiency 52%. Very rare: Polonium.</p>
@@ -87,7 +101,7 @@ label { margin-right: 10px; }
 
 <div id="interstitial" class="model-container">
 <h2>Interstitial</h2>
-<p>Extra atom squeezed into a gap. Red atom is off-lattice, clearly showing misplacement.</p>
+<p>Extra atom squeezed into a gap (red atom slightly off-lattice).</p>
 <div id="interstitialPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
@@ -99,28 +113,28 @@ label { margin-right: 10px; }
 
 <div id="frenkel" class="model-container">
 <h2>Frenkel Defect</h2>
-<p>An ion leaves its site and moves into a nearby gap. Red atom is the interstitial ion with a "+" label above it.</p>
+<p>An ion leaves its site and moves into a nearby gap. Red atom shows interstitial ion with "+" label.</p>
 <div id="frenkelPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
 <div id="schottky" class="model-container">
 <h2>Schottky Defect</h2>
-<p>Positive and negative ions are missing from their original lattice sites and move to nearby positions. "+" and "−" labels show the moved ions, colored spheres indicate new positions.</p>
+<p>Positive and negative ions missing from lattice → move to nearby positions. "+" and "−" labels show moved ions, colored spheres indicate new positions.</p>
 <div id="schottkyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
-<!-- ---------------- Material Processing Models ---------------- -->
+<!-- ---------------- Material Processing ---------------- -->
 <div id="photolithography" class="model-container">
 <h2>Photolithography / UV Lithography</h2>
-<p>Shine UV through patterned mask → resist changes → weak parts wash away → pattern left. Used in chips, CPUs, memory, smartphones.</p>
-<label for="photoDepth">Pattern Development:</label>
+<p>UV through patterned mask → resist changes → weak parts wash away → pattern left. Used in microchips.</p>
+<label for="photoDepth">Pattern Depth:</label>
 <input type="range" id="photoDepth" min="0" max="1" step="0.01" value="0.5">
 <div id="photoPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
 </div>
 
 <div id="wetEtching" class="model-container">
 <h2>Wet Etching</h2>
-<p>Submerge material in acid/base → chemical reaction removes material isotropically (all directions). Fast, cheap, less precise.</p>
+<p>Submerge material in chemical → isotropic etch (all directions). Fast, cheap, less precise.</p>
 <label for="wetDepth">Etch Depth:</label>
 <input type="range" id="wetDepth" min="0" max="1" step="0.01" value="0.3">
 <div id="wetPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -128,15 +142,15 @@ label { margin-right: 10px; }
 
 <div id="dryEtching" class="model-container">
 <h2>Dry Etching / Plasma Etching</h2>
-<p>Bombard surface with plasma → removes material anisotropically (vertical). Precision micro/nano fabrication.</p>
+<p>Bombard surface with plasma → removes material anisotropically (vertical). High precision.</p>
 <label for="dryDepth">Etch Depth:</label>
 <input type="range" id="dryDepth" min="0" max="1" step="0.01" value="0.4">
 <div id="dryPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
 </div>
 
 <div id="milling" class="model-container">
-<h2>Milling / Mechanical Machining / Grinding</h2>
-<p>Physical cutting tools remove material. Used for metal parts, engines, screws. CNC machines automate precision cutting.</p>
+<h2>Milling / Mechanical Machining</h2>
+<p>Physical cutting removes material. Used in engines, screws, metal parts. CNC for precision.</p>
 <label for="millDepth">Cut Depth:</label>
 <input type="range" id="millDepth" min="0" max="1" step="0.01" value="0.5">
 <div id="millPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -144,7 +158,7 @@ label { margin-right: 10px; }
 
 <div id="laser" class="model-container">
 <h2>Laser Ablation</h2>
-<p>Laser vaporizes material at focal point. Precision removal, surface cleaning, microstructures. No contact = no contamination.</p>
+<p>Laser vaporizes material. Precision removal, microstructures, no contact.</p>
 <label for="laserDepth">Ablation Depth:</label>
 <input type="range" id="laserDepth" min="0" max="1" step="0.01" value="0.4">
 <div id="laserPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -152,7 +166,7 @@ label { margin-right: 10px; }
 
 <div id="thinFilm" class="model-container">
 <h2>Thin Film Patterning</h2>
-<p>Deposit uniform thin film → lithography + etching removes parts → create complex multi-layer patterns. Used in multi-layer chips.</p>
+<p>Deposit uniform film → lithography + etch removes parts → multi-layer chip structures.</p>
 <label for="filmDepth">Pattern Depth:</label>
 <input type="range" id="filmDepth" min="0" max="1" step="0.01" value="0.5">
 <div id="filmPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -160,12 +174,12 @@ label { margin-right: 10px; }
 
 <div id="ionBeam" class="model-container">
 <h2>Ion Beam Lithography</h2>
-<p>Focused ion beam sputters atoms in precise patterns. Ultra-accurate, slow, used in nanoscale prototyping.</p>
+<p>Focused ions sputter atoms precisely. Ultra-accurate, nanoscale prototyping.</p>
 <label for="ionDepth">Sputter Depth:</label>
 <input type="range" id="ionDepth" min="0" max="1" step="0.01" value="0.3">
 <div id="ionPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
 </div>
-  
+
 <script>
 // ---------------- Tab Function ----------------
 function showModel(id) {
@@ -173,13 +187,9 @@ function showModel(id) {
   document.getElementById(id).classList.add('active');
 }
 
-// ---------------- 3D Dislocation Model ----------------
+// ---------------- 3D Dislocation ----------------
 const nx=20,ny=10,nz=5,b=1.0;
-function generateLattice(){
-  let X=[],Y=[],Z=[];
-  for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){X.push(i);Y.push(j);Z.push(k);}
-  return {X,Y,Z};
-}
+function generateLattice(){let X=[],Y=[],Z=[]; for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){X.push(i);Y.push(j);Z.push(k);} return {X,Y,Z};}
 function edgeDisplacement(X, dislocX){return X.map(xi=>(xi>=dislocX?b:0));}
 function screwDisplacement(X, dislocX){return X.map(xi=>b/(2*Math.PI)*Math.atan(xi-dislocX));}
 function updateDislocation(){
@@ -195,7 +205,7 @@ document.getElementById("dislocationType").addEventListener("change", updateDisl
 document.getElementById("dislocationPosition").addEventListener("input", updateDislocation);
 updateDislocation();
 
-// ---------------- 2D Grain Boundary Model ----------------
+// ---------------- 2D Grain Boundary ----------------
 const nx_g=20,ny_g=20;
 function generateGrains(angleDeg){
   const X=[],Y=[],Z=[],C=[];
@@ -212,7 +222,7 @@ function updateGrainBoundary(){
   const angle=parseFloat(document.getElementById("angle").value);
   const lattice=generateGrains(angle);
   Plotly.newPlot('grainPlot',[{x:lattice.X,y:lattice.Y,z:lattice.Z,mode:'markers',type:'scatter3d',marker:{size:4,color:lattice.C,colorscale:'Portland'}}],
-    {title:`2D Grain Boundary at ${angle}° Misorientation`,scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Plane'}}});
+    {title:`2D Grain Boundary at ${angle}°`,scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Plane'}}});
 }
 document.getElementById("angle").addEventListener("input",updateGrainBoundary);
 updateGrainBoundary();
@@ -220,7 +230,7 @@ updateGrainBoundary();
 // ---------------- Crystal Structures ----------------
 function plotCubicWithBox(type,divId){
   const L=2;
-  let X=[],Y=[],Z=[],linesX=[],linesY=[],linesZ=[];
+  let X=[],Y=[],Z=[];
   if(type==="SC"||type==="BCC"||type==="FCC"){
     for(let i=0;i<=1;i++) for(let j=0;j<=1;j++) for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}
     if(type==="BCC"){X.push(L/2);Y.push(L/2);Z.push(L/2);}
@@ -231,34 +241,25 @@ function plotCubicWithBox(type,divId){
     }
     const corners=[[0,0,0],[L,0,0],[L,L,0],[0,L,0],[0,0,L],[L,0,L],[L,L,L],[0,L,L]];
     const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
-    edges.forEach(e=>{
-      linesX.push(corners[e[0]][0],corners[e[1]][0],null);
-      linesY.push(corners[e[0]][1],corners[e[1]][1],null);
-      linesZ.push(corners[e[0]][2],corners[e[1]][2],null);
-    });
+    let linesX=[],linesY=[],linesZ=[];
+    edges.forEach(e=>{linesX.push(corners[e[0]][0],corners[e[1]][0],null);linesY.push(corners[e[0]][1],corners[e[1]][1],null);linesZ.push(corners[e[0]][2],corners[e[1]][2],null);});
     Plotly.newPlot(divId,[
       {x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:'orange'}},
       {x:linesX,y:linesY,z:linesZ,type:'scatter3d',mode:'lines',line:{color:'black',width:2}}
-    ],{title:type+' Unit Cell',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+    ],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
   } else if(type==="HCP"){
     const a=1,c=Math.sqrt(8/3);
     const layerA=[[0,0,0],[a,0,0],[a/2,a*Math.sqrt(3)/2,0]];
     const layerB=[[0,a*Math.sqrt(3)/3,c/2],[a,a*Math.sqrt(3)/3,c/2],[a/2,5*a*Math.sqrt(3)/6,c/2]];
-    let X=[],Y=[],Z=[];
+    X=[];Y=[];Z=[];
     layerA.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
     layerB.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
     const hexCorners=[[0,0,0],[a,0,0],[3*a/2,a*Math.sqrt(3)/2,0],[a,a*Math.sqrt(3),0],[0,a*Math.sqrt(3),0],[-a/2,a*Math.sqrt(3)/2,0]];
     const edges=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]];
     let ex=[],ey=[],ez=[];
-    edges.forEach(e=>{
-      ex.push(hexCorners[e[0]][0],hexCorners[e[1]][0],null);
-      ey.push(hexCorners[e[0]][1],hexCorners[e[1]][1],null);
-      ez.push(hexCorners[e[0]][2],hexCorners[e[1]][2],null);
-    });
-    Plotly.newPlot(divId,[
-      {x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:'orange'}},
-      {x:ex,y:ey,z:ez,type:'scatter3d',mode:'lines',line:{color:'black',width:2}}
-    ],{title:type+' Unit Cell',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+    edges.forEach(e=>{ex.push(hexCorners[e[0]][0],hexCorners[e[1]][0],null);ey.push(hexCorners[e[0]][1],hexCorners[e[1]][1],null);ez.push(hexCorners[e[0]][2],hexCorners[e[1]][2],null);});
+    Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:'orange'}},
+      {x:ex,y:ey,z:ez,type:'scatter3d',mode:'lines',line:{color:'black',width:2}}],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
   }
 }
 plotCubicWithBox('FCC','fccPlot');
@@ -268,92 +269,33 @@ plotCubicWithBox('SC','scPlot');
 
 // ---------------- Point Defects ----------------
 function plotPointDefect(type,divId){
-  const L=2;
-  const X=[],Y=[],Z=[],C=[],text=[];
-  for(let i=0;i<3;i++) for(let j=0;j<3;j++) for(let k=0;k<3;k++){X.push(i*L);Y.push(j*L);Z.push(k*L); C.push('blue'); text.push('');}
-
-  if(type==="vacancy"){ 
-    const idx=X.length/2|0; X.splice(idx,1); Y.splice(idx,1); Z.splice(idx,1); C.splice(idx,1); text.splice(idx,1);}
-  
-  if(type==="interstitial"){ 
-    X.push(L); Y.push(L); Z.push(L); C.push('red'); text.push('');
-    X.push(L+0.5); Y.push(L+0.2); Z.push(L+0.3); C.push('red'); text.push(''); // offset extra atom
-  }
-  
-  if(type==="impurity"){ 
-    const idx=X.length/2|0; C[idx]='green'; text[idx]='';}
-  
-  if(type==="frenkel"){ 
-    const idx=X.length/2|0;
-    X.push(X[idx]+0.5); Y.push(Y[idx]+0.5); Z.push(Z[idx]+0.5); C.push('red'); text.push('+'); // interstitial ion
-    text[idx]='';} 
-  
-  if(type==="schottky"){ 
-    // remove two atoms (original positions)
-    const pos1={x:X[0],y:Y[0],z:Z[0]};
-    const pos2={x:X[X.length-1],y:Y[Y.length-1],z:Z[Z.length-1]};
-    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1); text.splice(0,1);
-    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1); text.splice(text.length-1,1);
-
-    // add moved ions nearby with colors and labels
-    X.push(pos1.x+0.5); Y.push(pos1.y+0.3); Z.push(pos1.z+0.2); C.push('red'); text.push('+');
-    X.push(pos2.x+0.4); Y.push(pos2.y+0.6); Z.push(pos2.z+0.2); C.push('green'); text.push('−');
-  }
-
-  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers+text',marker:{size:6,color:C},text:text,textposition:'top center'}],
-    {title:type+' Defect',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+  const L=3;
+  let X=[],Y=[],Z=[],C=[];
+  for(let i=0;i<=2;i++) for(let j=0;j<=2;j++) for(let k=0;k<=2;k++){X.push(i);Y.push(j);Z.push(k);C.push('blue');}
+  if(type==="vacancy"){X.splice(13,1);Y.splice(13,1);Z.splice(13,1);}
+  if(type==="interstitial"){X.push(1.5);Y.push(1.5);Z.push(1.5);C.push('red');}
+  if(type==="impurity"){X[13]=1.5;Y[13]=1.5;Z[13]=1.5;C[13]='green';}
+  if(type==="frenkel"){X.push(2);Y.push(2);Z.push(2);C.push('red');}
+  if(type==="schottky"){X.splice(13,1);Y.splice(13,1);Z.splice(13,1);C.splice(13,1); X.push(0.5,2.5); Y.push(0.5,2.5); Z.push(0.5,2.5); C.push('purple','cyan');}
+  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:C}}],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
 }
-
 plotPointDefect('vacancy','vacancyPlot');
 plotPointDefect('interstitial','interstitialPlot');
 plotPointDefect('impurity','impurityPlot');
 plotPointDefect('frenkel','frenkelPlot');
 plotPointDefect('schottky','schottkyPlot');
 
-// ---------------- Material Processing Visualizations ----------------
+// ---------------- Material Processing ----------------
 function plotBlock(divId,depth){
-  const size=10;
-  const X=[],Y=[],Z=[],C=[];
-  for(let i=0;i<=size;i++) for(let j=0;j<=size;j++){
-    X.push(i); Y.push(j); 
-    Z.push(size - depth*size); // simulate removed material
-    C.push('orange');
-  }
-  Plotly.newPlot(divId,[{
-    x:X, y:Y, z:Z, type:'scatter3d', mode:'markers',
-    marker:{size:4,color:C}
-  }],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+  const size=10,X=[],Y=[],Z=[],C=[];
+  for(let i=0;i<=size;i++) for(let j=0;j<=size;j++){X.push(i);Y.push(j); Z.push(size-depth*size); C.push('orange');}
+  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:4,color:C}}],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
 }
-
-// Interactive sliders
-const photoSlider = document.getElementById('photoDepth');
-photoSlider.addEventListener('input',()=>plotBlock('photoPlot',photoSlider.value));
-
-const wetSlider = document.getElementById('wetDepth');
-wetSlider.addEventListener('input',()=>plotBlock('wetPlot',wetSlider.value));
-
-const drySlider = document.getElementById('dryDepth');
-drySlider.addEventListener('input',()=>plotBlock('dryPlot',drySlider.value));
-
-const millSlider = document.getElementById('millDepth');
-millSlider.addEventListener('input',()=>plotBlock('millPlot',millSlider.value));
-
-const laserSlider = document.getElementById('laserDepth');
-laserSlider.addEventListener('input',()=>plotBlock('laserPlot',laserSlider.value));
-
-const filmSlider = document.getElementById('filmDepth');
-filmSlider.addEventListener('input',()=>plotBlock('filmPlot',filmSlider.value));
-
-const ionSlider = document.getElementById('ionDepth');
-ionSlider.addEventListener('input',()=>plotBlock('ionPlot',ionSlider.value));
-// Initialize all plots
-plotBlock('photoPlot',photoSlider.value);
-plotBlock('wetPlot',wetSlider.value);
-plotBlock('dryPlot',drySlider.value);
-plotBlock('millPlot',millSlider.value);
-plotBlock('laserPlot',laserSlider.value);
-plotBlock('filmPlot',filmSlider.value);
-plotBlock('ionPlot',ionSlider.value);
+['photo','wet','dry','mill','laser','film','ion'].forEach(id=>{
+  const slider=document.getElementById(id+'Depth');
+  slider.addEventListener('input',()=>plotBlock(id+'Plot',slider.value));
+  plotBlock(id+'Plot',slider.value);
+});
 </script>
 </body>
 </html>
