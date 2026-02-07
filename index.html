@@ -22,6 +22,11 @@ label { margin-right: 10px; }
   <button onclick="showModel('bcc')">BCC</button>
   <button onclick="showModel('hcp')">HCP</button>
   <button onclick="showModel('sc')">SC</button>
+  <button onclick="showModel('vacancy')">Vacancy</button>
+  <button onclick="showModel('interstitial')">Interstitial</button>
+  <button onclick="showModel('impurity')">Impurity</button>
+  <button onclick="showModel('frenkel')">Frenkel Defect</button>
+  <button onclick="showModel('schottky')">Schottky Defect</button>
 </div>
 
 <!-- 3D Dislocation Model -->
@@ -73,8 +78,39 @@ label { margin-right: 10px; }
 <div id="scPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
+<!-- Point Defects -->
+<div id="vacancy" class="model-container">
+<h2>Vacancy</h2>
+<p>Missing atom – empty spot in lattice.</p>
+<div id="vacancyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+</div>
+
+<div id="interstitial" class="model-container">
+<h2>Interstitial</h2>
+<p>Extra atom squeezed into a gap.</p>
+<div id="interstitialPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+</div>
+
+<div id="impurity" class="model-container">
+<h2>Impurity</h2>
+<p>Wrong type of atom in the structure.</p>
+<div id="impurityPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+</div>
+
+<div id="frenkel" class="model-container">
+<h2>Frenkel Defect</h2>
+<p>An ion leaves its spot and moves into a gap nearby (ceramics).</p>
+<div id="frenkelPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+</div>
+
+<div id="schottky" class="model-container">
+<h2>Schottky Defect</h2>
+<p>Pair of ions (positive + negative) missing to maintain charge balance (ceramics).</p>
+<div id="schottkyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+</div>
+
 <script>
-// Tab function
+// ---------------- Tab Function ----------------
 function showModel(id) {
   document.querySelectorAll('.model-container').forEach(div => div.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -131,14 +167,12 @@ function plotCubicWithBox(type,divId){
   if(type==="SC"||type==="BCC"||type==="FCC"){
     // corners
     for(let i=0;i<=1;i++) for(let j=0;j<=1;j++) for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}
-    if(type==="BCC"){X.push(L/2);Y.push(L/2);Z.push(L/2);} // BCC center
+    if(type==="BCC"){X.push(L/2);Y.push(L/2);Z.push(L/2);}
     if(type==="FCC"){
-      // FCC face centers
       X.push(L/2);Y.push(L/2);Z.push(0); X.push(L/2);Y.push(L/2);Z.push(L);
       X.push(L/2);Y.push(0);Z.push(L/2); X.push(L/2);Y.push(1);Z.push(L/2);
       X.push(0);Y.push(L/2);Z.push(L/2); X.push(1);Y.push(L/2);Z.push(L/2);
     }
-    // cube edges
     const corners=[[0,0,0],[L,0,0],[L,L,0],[0,L,0],[0,0,L],[L,0,L],[L,L,L],[0,L,L]];
     const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
     edges.forEach(e=>{
@@ -151,15 +185,13 @@ function plotCubicWithBox(type,divId){
       {x:linesX,y:linesY,z:linesZ,type:'scatter3d',mode:'lines',line:{color:'black',width:2}}
     ],{title:type+' Unit Cell',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
   } else if(type==="HCP"){
-    // HCP hexagonal prism
     const a=1,c=Math.sqrt(8/3);
     const layerA=[[0,0,0],[a,0,0],[a/2,a*Math.sqrt(3)/2,0]];
     const layerB=[[0,a*Math.sqrt(3)/3,c/2],[a,a*Math.sqrt(3)/3,c/2],[a/2,5*a*Math.sqrt(3)/6,c/2]];
     let X=[],Y=[],Z=[];
     layerA.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
     layerB.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
-    // hex prism edges
-    const hexCorners=[[0,0,0],[a,0,0],[3*a/2,a*Math.sqrt(3)/2,0],[a,a*Math.sqrt(3),0],[0,a*Math.sqrt(3),0],[ -a/2,a*Math.sqrt(3)/2,0]];
+    const hexCorners=[[0,0,0],[a,0,0],[3*a/2,a*Math.sqrt(3)/2,0],[a,a*Math.sqrt(3),0],[0,a*Math.sqrt(3),0],[-a/2,a*Math.sqrt(3)/2,0]];
     const edges=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]];
     let ex=[],ey=[],ez=[];
     edges.forEach(e=>{
@@ -178,6 +210,36 @@ plotCubicWithBox('FCC','fccPlot');
 plotCubicWithBox('BCC','bccPlot');
 plotCubicWithBox('HCP','hcpPlot');
 plotCubicWithBox('SC','scPlot');
+
+// ---------------- Point Defects ----------------
+function plotPointDefect(type,divId){
+  const L=2;
+  const X=[],Y=[],Z=[],C=[];
+  // 3x3x3 simple cubic lattice
+  for(let i=0;i<3;i++) for(let j=0;j<3;j++) for(let k=0;k<3;k++){X.push(i*L);Y.push(j*L);Z.push(k*L); C.push('blue');}
+  if(type==="vacancy"){ // remove center atom
+    const idx=X.length/2|0; X.splice(idx,1); Y.splice(idx,1); Z.splice(idx,1); C.splice(idx,1);}
+  if(type==="interstitial"){ // add extra atom in center
+    X.push(L); Y.push(L); Z.push(L); C.push('red');}
+  if(type==="impurity"){ // replace center atom color
+    const idx=X.length/2|0; C[idx]='green';}
+  if(type==="frenkel"){ // move center atom to interstitial
+    const idx=X.length/2|0;
+    X.push(X[idx]+0.5); Y.push(Y[idx]+0.5); Z.push(Z[idx]+0.5); C.push('red'); // interstitial
+    C[idx]='blue';}
+  if(type==="schottky"){ // remove two opposite atoms
+    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1);
+    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1);}
+  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:C}}],
+    {title:type+' Defect',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+}
+
+plotPointDefect('vacancy','vacancyPlot');
+plotPointDefect('interstitial','interstitialPlot');
+plotPointDefect('impurity','impurityPlot');
+plotPointDefect('frenkel','frenkelPlot');
+plotPointDefect('schottky','schottkyPlot');
+
 </script>
 </body>
 </html>
