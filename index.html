@@ -6,9 +6,9 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    .header { display: flex; gap: 20px; margin-bottom: 20px; }
-    .header button { padding: 10px 20px; cursor: pointer; }
-    .model-container { display: none; }
+    .header { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+    .header button { padding: 10px 20px; cursor: pointer; margin-bottom: 5px; }
+    .model-container { display: none; margin-top: 20px; }
     .active { display: block; }
     label { margin-right: 10px; }
   </style>
@@ -18,9 +18,13 @@
   <div class="header">
     <button onclick="showModel('dislocation')">3D Dislocations</button>
     <button onclick="showModel('grain')">2D Grain Boundary</button>
+    <button onclick="showModel('fcc')">FCC</button>
+    <button onclick="showModel('bcc')">BCC</button>
+    <button onclick="showModel('hcp')">HCP</button>
+    <button onclick="showModel('sc')">SC</button>
   </div>
 
-  <!-- ---------------- Dislocation Model ---------------- -->
+  <!-- ---------------- 3D Dislocation Model ---------------- -->
   <div id="dislocation" class="model-container active">
     <h2>3D Crystal Block: Edge vs Screw Dislocation</h2>
     <label for="dislocationType">Dislocation Type:</label>
@@ -28,20 +32,45 @@
       <option value="Edge">Edge</option>
       <option value="Screw">Screw</option>
     </select>
-
     <label for="dislocationPosition">Dislocation X Position:</label>
     <input type="range" id="dislocationPosition" min="2" max="18" step="0.1" value="10">
-
     <div id="dislocationPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
   </div>
 
-  <!-- ---------------- Grain Boundary Model ---------------- -->
+  <!-- ---------------- 2D Grain Boundary Model ---------------- -->
   <div id="grain" class="model-container">
     <h2>2D Grain Boundary Model</h2>
     <label for="angle">Grain Misorientation Angle (degrees):</label>
     <input type="range" id="angle" min="0" max="45" step="1" value="15">
-
     <div id="grainPlot" style="width:90%;max-width:900px;height:600px;margin-top:20px;"></div>
+  </div>
+
+  <!-- ---------------- FCC Crystal ---------------- -->
+  <div id="fcc" class="model-container">
+    <h2>Face-Centered Cubic (FCC)</h2>
+    <p>Atoms at 8 corners + 6 face centers. Packing efficiency 74%. Examples: Copper, Aluminum, Gold.</p>
+    <div id="fccPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+  </div>
+
+  <!-- ---------------- BCC Crystal ---------------- -->
+  <div id="bcc" class="model-container">
+    <h2>Body-Centered Cubic (BCC)</h2>
+    <p>Atoms at 8 corners + 1 in the center. Packing efficiency 68%. Example: Room-temperature Iron.</p>
+    <div id="bccPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+  </div>
+
+  <!-- ---------------- HCP Crystal ---------------- -->
+  <div id="hcp" class="model-container">
+    <h2>Hexagonal Close-Packed (HCP)</h2>
+    <p>ABAB layering pattern. Packing efficiency 74%. Examples: Zinc, Magnesium.</p>
+    <div id="hcpPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
+  </div>
+
+  <!-- ---------------- SC Crystal ---------------- -->
+  <div id="sc" class="model-container">
+    <h2>Simple Cubic (SC)</h2>
+    <p>Atoms only at corners. Packing efficiency 52%. Very rare; Polonium is an example.</p>
+    <div id="scPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
   </div>
 
   <script>
@@ -58,106 +87,94 @@
       for (let k=0; k<nz; k++) {
         for (let j=0; j<ny; j++) {
           for (let i=0; i<nx; i++) {
-            X.push(i);
-            Y.push(j);
-            Z.push(k);
+            X.push(i); Y.push(j); Z.push(k);
           }
         }
       }
       return {X, Y, Z};
     }
-
-    function edgeDisplacement(X, dislocX) {
-      return X.map(xi => (xi >= dislocX ? b : 0));
-    }
-
-    function screwDisplacement(X, dislocX) {
-      return X.map(xi => b/(2*Math.PI) * Math.atan(xi - dislocX));
-    }
-
+    function edgeDisplacement(X, dislocX) { return X.map(xi => (xi>=dislocX ? b:0)); }
+    function screwDisplacement(X, dislocX) { return X.map(xi => b/(2*Math.PI)*Math.atan(xi-dislocX)); }
     function updateDislocation() {
-      const type = document.getElementById("dislocationType").value;
-      const dislocX = parseFloat(document.getElementById("dislocationPosition").value);
-      const lattice = generateLattice();
-
-      let Z_new;
-      if (type === "Edge") {
-        const dz = edgeDisplacement(lattice.X, dislocX);
-        Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
-      } else {
-        const dz = screwDisplacement(lattice.X, dislocX);
-        Z_new = lattice.Z.map((zi, idx) => zi + dz[idx]);
-      }
-
-      const trace = {
-        x: lattice.X, y: lattice.Y, z: Z_new,
-        mode: 'markers', type: 'scatter3d',
-        marker: {size: 4, color: Z_new, colorscale: 'Viridis'}
-      };
-
-      const layout = {
-        title: `${type} Dislocation at X = ${dislocX.toFixed(2)}`,
-        scene: {xaxis:{title:'X'}, yaxis:{title:'Y'}, zaxis:{title:'Z'}}
-      };
-
-      Plotly.newPlot('dislocationPlot', [trace], layout);
+      const type=document.getElementById("dislocationType").value;
+      const dislocX=parseFloat(document.getElementById("dislocationPosition").value);
+      const lattice=generateLattice();
+      let Z_new = (type==="Edge") ? lattice.Z.map((zi,idx)=>zi+edgeDisplacement(lattice.X,dislocX)[idx]) :
+                                      lattice.Z.map((zi,idx)=>zi+screwDisplacement(lattice.X,dislocX)[idx]);
+      Plotly.newPlot('dislocationPlot',[{x:lattice.X,y:lattice.Y,z:Z_new,mode:'markers',type:'scatter3d',
+        marker:{size:4,color:Z_new,colorscale:'Viridis'}}],
+        {title:`${type} Dislocation at X=${dislocX.toFixed(2)}`,scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
     }
-
     document.getElementById("dislocationType").addEventListener("change", updateDislocation);
     document.getElementById("dislocationPosition").addEventListener("input", updateDislocation);
     updateDislocation();
 
     // ---------------- 2D Grain Boundary Model ----------------
-    const nx_g = 20, ny_g = 20;
-    function generateGrains(angleDeg) {
-      const X = [], Y = [], Z = [], C = [];
-      const angleRad = angleDeg * Math.PI / 180;
-
-      // Grain 1
-      for (let i=0; i<nx_g; i++) {
-        for (let j=0; j<ny_g; j++) {
-          X.push(i);
-          Y.push(j);
-          Z.push(0);
-          C.push(0); // color code for grain 1
-        }
-      }
-
-      // Grain 2 rotated and shifted
-      for (let i=0; i<nx_g; i++) {
-        for (let j=0; j<ny_g; j++) {
-          const x_rot = i * Math.cos(angleRad) - j * Math.sin(angleRad) + nx_g/2;
-          const y_rot = i * Math.sin(angleRad) + j * Math.cos(angleRad);
-          X.push(x_rot);
-          Y.push(y_rot);
-          Z.push(0); // same plane
-          C.push(1); // color code for grain 2
-        }
-      }
-
-      return {X, Y, Z, C};
+    const nx_g=20, ny_g=20;
+    function generateGrains(angleDeg){
+      const X=[],Y=[],Z=[],C=[]; 
+      const angleRad=angleDeg*Math.PI/180;
+      for(let i=0;i<nx_g;i++){for(let j=0;j<ny_g;j++){X.push(i);Y.push(j);Z.push(0);C.push(0);}}
+      for(let i=0;i<nx_g;i++){for(let j=0;j<ny_g;j++){
+        const x_rot=i*Math.cos(angleRad)-j*Math.sin(angleRad)+nx_g/2;
+        const y_rot=i*Math.sin(angleRad)+j*Math.cos(angleRad);
+        X.push(x_rot); Y.push(y_rot); Z.push(0); C.push(1);
+      }}
+      return {X,Y,Z,C};
     }
-
-    function updateGrainBoundary() {
-      const angle = parseFloat(document.getElementById("angle").value);
-      const lattice = generateGrains(angle);
-
-      const trace = {
-        x: lattice.X, y: lattice.Y, z: lattice.Z,
-        mode: 'markers', type: 'scatter3d',
-        marker: {size: 4, color: lattice.C, colorscale: 'Portland'}
-      };
-
-      const layout = {
-        title: `2D Grain Boundary at ${angle}° Misorientation`,
-        scene: {xaxis:{title:'X'}, yaxis:{title:'Y'}, zaxis:{title:'Plane'}}
-      };
-
-      Plotly.newPlot('grainPlot', [trace], layout);
+    function updateGrainBoundary(){
+      const angle=parseFloat(document.getElementById("angle").value);
+      const lattice=generateGrains(angle);
+      Plotly.newPlot('grainPlot',[{x:lattice.X,y:lattice.Y,z:lattice.Z,mode:'markers',type:'scatter3d',
+        marker:{size:4,color:lattice.C,colorscale:'Portland'}}],
+        {title:`2D Grain Boundary at ${angle}° Misorientation`,scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Plane'}}});
     }
-
-    document.getElementById("angle").addEventListener("input", updateGrainBoundary);
+    document.getElementById("angle").addEventListener("input",updateGrainBoundary);
     updateGrainBoundary();
+
+    // ---------------- Crystal Structures ----------------
+    function generateCubicLattice(type){
+      const X=[],Y=[],Z=[];
+      const L=2; // unit cube length
+      if(type==="SC"){
+        // simple cubic corners
+        for(let i=0;i<=1;i++){for(let j=0;j<=1;j++){for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}}}
+      } else if(type==="BCC"){
+        // corners + center
+        for(let i=0;i<=1;i++){for(let j=0;j<=1;j++){for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}}}
+        X.push(L/2); Y.push(L/2); Z.push(L/2); // center atom
+      } else if(type==="FCC"){
+        // corners + face centers
+        for(let i=0;i<=1;i++){for(let j=0;j<=1;j++){for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}}}
+        // face centers
+        X.push(L/2);Y.push(L/2);Z.push(0);
+        X.push(L/2);Y.push(L/2);Z.push(L);
+        X.push(L/2);Y.push(0);Z.push(L/2);
+        X.push(L/2);Y.push(1);Z.push(L/2);
+        X.push(0);Y.push(L/2);Z.push(L/2);
+        X.push(1);Y.push(L/2);Z.push(L/2);
+      } else if(type==="HCP"){
+        const a=1,c=Math.sqrt(8/3); // simple hcp scaling
+        const layer=[[0,0,0],[a,0,0],[a/2,a*Math.sqrt(3)/2,0]];
+        const layer2=[[0,a*Math.sqrt(3)/3,c/2],[a,a*Math.sqrt(3)/3,c/2],[a/2,5*a*Math.sqrt(3)/6,c/2]];
+        layer.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
+        layer2.forEach(v=>{X.push(v[0]);Y.push(v[1]);Z.push(v[2]);});
+      }
+      return {X,Y,Z};
+    }
+
+    function plotCrystal(type, divId){
+      const lattice=generateCubicLattice(type);
+      Plotly.newPlot(divId,[{x:lattice.X,y:lattice.Y,z:lattice.Z,mode:'markers',type:'scatter3d',
+        marker:{size:6,color:'orange'}}],
+        {title:type+' Crystal Structure',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+    }
+
+    plotCrystal('FCC','fccPlot');
+    plotCrystal('BCC','bccPlot');
+    plotCrystal('HCP','hcpPlot');
+    plotCrystal('SC','scPlot');
+
   </script>
 </body>
 </html>
