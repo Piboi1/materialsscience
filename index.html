@@ -87,25 +87,25 @@ label { margin-right: 10px; }
 
 <div id="interstitial" class="model-container">
 <h2>Interstitial</h2>
-<p>Extra atom squeezed into a gap.</p>
+<p>Extra atom squeezed into a gap. Red atom is off-lattice, demonstrating misplacement.</p>
 <div id="interstitialPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
 <div id="impurity" class="model-container">
 <h2>Impurity</h2>
-<p>Wrong type of atom in the structure.</p>
+<p>Wrong type of atom in the structure (green atom).</p>
 <div id="impurityPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
 <div id="frenkel" class="model-container">
 <h2>Frenkel Defect</h2>
-<p>An ion leaves its spot and moves into a gap nearby (ceramics).</p>
+<p>An ion leaves its site and moves into a nearby gap. Red atom is the interstitial ion with a "+" label above it.</p>
 <div id="frenkelPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
 <div id="schottky" class="model-container">
 <h2>Schottky Defect</h2>
-<p>Pair of ions (positive + negative) missing to maintain charge balance (ceramics).</p>
+<p>Positive and negative ions both missing to maintain charge balance. "+" and "−" labels show missing ion positions.</p>
 <div id="schottkyPlot" style="width:90%;max-width:600px;height:500px;margin-top:20px;"></div>
 </div>
 
@@ -165,7 +165,6 @@ function plotCubicWithBox(type,divId){
   const L=2;
   let X=[],Y=[],Z=[],linesX=[],linesY=[],linesZ=[];
   if(type==="SC"||type==="BCC"||type==="FCC"){
-    // corners
     for(let i=0;i<=1;i++) for(let j=0;j<=1;j++) for(let k=0;k<=1;k++){X.push(i*L);Y.push(j*L);Z.push(k*L);}
     if(type==="BCC"){X.push(L/2);Y.push(L/2);Z.push(L/2);}
     if(type==="FCC"){
@@ -205,7 +204,6 @@ function plotCubicWithBox(type,divId){
     ],{title:type+' Unit Cell',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
   }
 }
-
 plotCubicWithBox('FCC','fccPlot');
 plotCubicWithBox('BCC','bccPlot');
 plotCubicWithBox('HCP','hcpPlot');
@@ -214,23 +212,32 @@ plotCubicWithBox('SC','scPlot');
 // ---------------- Point Defects ----------------
 function plotPointDefect(type,divId){
   const L=2;
-  const X=[],Y=[],Z=[],C=[];
+  const X=[],Y=[],Z=[],C=[],text=[];
   // 3x3x3 simple cubic lattice
-  for(let i=0;i<3;i++) for(let j=0;j<3;j++) for(let k=0;k<3;k++){X.push(i*L);Y.push(j*L);Z.push(k*L); C.push('blue');}
-  if(type==="vacancy"){ // remove center atom
-    const idx=X.length/2|0; X.splice(idx,1); Y.splice(idx,1); Z.splice(idx,1); C.splice(idx,1);}
-  if(type==="interstitial"){ // add extra atom in center
-    X.push(L); Y.push(L); Z.push(L); C.push('red');}
-  if(type==="impurity"){ // replace center atom color
-    const idx=X.length/2|0; C[idx]='green';}
-  if(type==="frenkel"){ // move center atom to interstitial
+  for(let i=0;i<3;i++) for(let j=0;j<3;j++) for(let k=0;k<3;k++){X.push(i*L);Y.push(j*L);Z.push(k*L); C.push('blue'); text.push('');}
+  
+  if(type==="vacancy"){ 
+    const idx=X.length/2|0; X.splice(idx,1); Y.splice(idx,1); Z.splice(idx,1); C.splice(idx,1); text.splice(idx,1);}
+  
+  if(type==="interstitial"){ 
+    X.push(L); Y.push(L); Z.push(L); C.push('red'); text.push('');
+    X.push(L+0.5); Y.push(L+0.2); Z.push(L+0.3); C.push('red'); text.push(''); // offset extra atom
+  }
+  
+  if(type==="impurity"){ 
+    const idx=X.length/2|0; C[idx]='green'; text[idx]='';}
+  
+  if(type==="frenkel"){ 
     const idx=X.length/2|0;
-    X.push(X[idx]+0.5); Y.push(Y[idx]+0.5); Z.push(Z[idx]+0.5); C.push('red'); // interstitial
-    C[idx]='blue';}
-  if(type==="schottky"){ // remove two opposite atoms
-    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1);
-    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1);}
-  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:6,color:C}}],
+    X.push(X[idx]+0.5); Y.push(Y[idx]+0.5); Z.push(Z[idx]+0.5); C.push('red'); text.push('+'); // interstitial ion
+    text[idx]='';} 
+  
+  if(type==="schottky"){ 
+    X.splice(0,1); Y.splice(0,1); Z.splice(0,1); C.splice(0,1); text.splice(0,1); text.push('+'); 
+    X.splice(X.length-1,1); Y.splice(Y.length-1,1); Z.splice(Z.length-1,1); C.splice(C.length-1,1); text.splice(text.length-1,1); text.push('−'); 
+  }
+
+  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers+text',marker:{size:6,color:C},text:text,textposition:'top center'}],
     {title:type+' Defect',scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
 }
 
