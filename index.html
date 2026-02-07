@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>1D Dislocation Interactive Model</title>
+  <title>3D Dislocation Interactive Model</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-  <h2>1D Dislocation Interactive Model</h2>
+  <h2>3D 1D Dislocation Model</h2>
 
   <label for="dislocationType">Dislocation Type:</label>
   <select id="dislocationType">
@@ -17,14 +17,16 @@
   <label for="position">Dislocation Position:</label>
   <input type="range" id="position" min="0" max="10" step="0.1" value="5">
 
-  <div id="plot" style="width:90%;max-width:800px;height:500px;"></div>
+  <div id="plot" style="width:90%;max-width:900px;height:600px;"></div>
 
   <script>
     // Lattice points
-    let N = 100;
-    let x = Array.from({length: N}, (_, i) => i * 10 / (N-1));
-    let b = 1.0;  // Burgers vector
+    const N = 50;  // fewer points for 3D clarity
+    const x = Array.from({length: N}, (_, i) => i * 10 / (N-1));
+    const y = Array.from({length: N}, () => 0);  // y positions fixed
+    const b = 1.0;  // Burgers vector
 
+    // Displacement functions
     function displacementEdge(x, x0, b) {
       return x.map(xi => (b / 2) * Math.sign(xi - x0) * (1 - Math.exp(-Math.abs(xi - x0))));
     }
@@ -34,22 +36,30 @@
     }
 
     function updatePlot() {
-      let type = document.getElementById("dislocationType").value;
-      let x0 = parseFloat(document.getElementById("position").value);
-      let y = (type === "Edge") ? displacementEdge(x, x0, b) : displacementScrew(x, x0, b);
+      const type = document.getElementById("dislocationType").value;
+      const x0 = parseFloat(document.getElementById("position").value);
 
-      let trace = {
+      const z = (type === "Edge") ? displacementEdge(x, x0, b) : displacementScrew(x, x0, b);
+
+      // 3D lattice line
+      const trace = {
         x: x,
         y: y,
+        z: z,
         mode: 'lines+markers',
-        line: {color: 'blue'},
-        marker: {size: 6}
+        type: 'scatter3d',
+        line: {color: 'blue', width: 6},
+        marker: {size: 4, color: 'red'}
       };
 
-      let layout = {
+      const layout = {
         title: `${type} Dislocation at x = ${x0.toFixed(2)}`,
-        xaxis: {title: 'Position along lattice'},
-        yaxis: {title: 'Displacement', range: [-1.5, 1.5]}
+        scene: {
+          xaxis: {title: 'Lattice Position X'},
+          yaxis: {title: 'Lattice Line Y'},
+          zaxis: {title: 'Displacement Z', range: [-1.5, 1.5]},
+          camera: {eye: {x: 1.5, y: 1.5, z: 1}}
+        }
       };
 
       Plotly.newPlot('plot', [trace], layout);
@@ -58,7 +68,7 @@
     // Initial plot
     updatePlot();
 
-    // Add event listeners
+    // Event listeners
     document.getElementById("dislocationType").addEventListener("change", updatePlot);
     document.getElementById("position").addEventListener("input", updatePlot);
   </script>
