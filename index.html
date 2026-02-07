@@ -124,17 +124,9 @@ label { margin-right: 10px; }
 </div>
 
 <!-- ---------------- Material Processing ---------------- -->
-<div id="photolithography" class="model-container">
-<h2>Photolithography / UV Lithography</h2>
-<p>UV through patterned mask → resist changes → weak parts wash away → pattern left. Used in microchips.</p>
-<label for="photoDepth">Pattern Depth:</label>
-<input type="range" id="photoDepth" min="0" max="1" step="0.01" value="0.5">
-<div id="photoPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
-</div>
-
 <div id="wetEtching" class="model-container">
 <h2>Wet Etching</h2>
-<p>Submerge material in chemical → isotropic etch (all directions). Fast, cheap, less precise.</p>
+<p>Submerge material in chemicals → top layers gradually wear off isotropically.</p>
 <label for="wetDepth">Etch Depth:</label>
 <input type="range" id="wetDepth" min="0" max="1" step="0.01" value="0.3">
 <div id="wetPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -142,7 +134,7 @@ label { margin-right: 10px; }
 
 <div id="dryEtching" class="model-container">
 <h2>Dry Etching / Plasma Etching</h2>
-<p>Bombard surface with plasma → removes material anisotropically (vertical). High precision.</p>
+<p>Top layers are removed anisotropically (vertical walls remain sharp).</p>
 <label for="dryDepth">Etch Depth:</label>
 <input type="range" id="dryDepth" min="0" max="1" step="0.01" value="0.4">
 <div id="dryPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -150,7 +142,7 @@ label { margin-right: 10px; }
 
 <div id="milling" class="model-container">
 <h2>Milling / Mechanical Machining</h2>
-<p>Physical cutting removes material. Used in engines, screws, metal parts. CNC for precision.</p>
+<p>Top layers removed uniformly like a cutting tool.</p>
 <label for="millDepth">Cut Depth:</label>
 <input type="range" id="millDepth" min="0" max="1" step="0.01" value="0.5">
 <div id="millPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -158,7 +150,7 @@ label { margin-right: 10px; }
 
 <div id="laser" class="model-container">
 <h2>Laser Ablation</h2>
-<p>Laser vaporizes material. Precision removal, microstructures, no contact.</p>
+<p>Focused laser removes top atoms in a small spot (high precision).</p>
 <label for="laserDepth">Ablation Depth:</label>
 <input type="range" id="laserDepth" min="0" max="1" step="0.01" value="0.4">
 <div id="laserPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -166,7 +158,7 @@ label { margin-right: 10px; }
 
 <div id="thinFilm" class="model-container">
 <h2>Thin Film Patterning</h2>
-<p>Deposit uniform film → lithography + etch removes parts → multi-layer chip structures.</p>
+<p>Deposit film → remove top layers selectively according to pattern.</p>
 <label for="filmDepth">Pattern Depth:</label>
 <input type="range" id="filmDepth" min="0" max="1" step="0.01" value="0.5">
 <div id="filmPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -174,7 +166,7 @@ label { margin-right: 10px; }
 
 <div id="ionBeam" class="model-container">
 <h2>Ion Beam Lithography</h2>
-<p>Focused ions sputter atoms precisely. Ultra-accurate, nanoscale prototyping.</p>
+<p>Focused ions remove top atoms in a very small, precise region.</p>
 <label for="ionDepth">Sputter Depth:</label>
 <input type="range" id="ionDepth" min="0" max="1" step="0.01" value="0.3">
 <div id="ionPlot" style="width:90%;max-width:700px;height:400px;margin-top:20px;"></div>
@@ -285,43 +277,51 @@ plotPointDefect('impurity','impurityPlot');
 plotPointDefect('frenkel','frenkelPlot');
 plotPointDefect('schottky','schottkyPlot');
 
-// ---------------- Material Processing ----------------
-function plotProcessingAtoms(divId, depth) {
-    const size = 10;  // number of atoms in each direction
-    let X = [], Y = [], Z = [], C = [];
+// ---------------- Top-Down Removal Atom Simulation ----------------
+function plotTopDown(divId, depth, type){
+    const size = 5; // 5x5x5 atoms
+    const X=[], Y=[], Z=[], C=[];
 
-    for (let i = 0; i <= size; i++) {
-        for (let j = 0; j <= size; j++) {
-            for (let k = 0; k <= size; k++) {
-                // remove atoms below "depth * size" to simulate etching
-                if (k > depth * size) {
-                    X.push(i); 
-                    Y.push(j); 
-                    Z.push(k); 
-                    C.push('orange'); // remaining material
+    for(let i=0;i<size;i++){
+        for(let j=0;j<size;j++){
+            for(let k=0;k<size;k++){
+                // For laser or ion beam, remove small area in center
+                if(type==='laser' || type==='ion'){
+                    const cx = size/2, cy = size/2;
+                    const radius = size/4;
+                    const dist = Math.sqrt((i-cx)**2 + (j-cy)**2);
+                    if(dist < radius && k >= size - depth*size){ 
+                        continue; // removed atoms
+                    }
+                } else { // Wet, Dry, Milling, Thin film
+                    if(k >= size - depth*size){ 
+                        continue; // removed top atoms
+                    }
                 }
+                X.push(i); Y.push(j); Z.push(k); 
+                C.push('orange');
             }
         }
     }
 
-    Plotly.newPlot(divId, [{
-        x: X,
-        y: Y,
-        z: Z,
-        type: 'scatter3d',
-        mode: 'markers',
-        marker: { size: 4, color: C }
-    }], {
-        scene: { xaxis: { title: 'X' }, yaxis: { title: 'Y' }, zaxis: { title: 'Z' } }
+    Plotly.newPlot(divId,[{
+        x:X, y:Y, z:Z,
+        type:'scatter3d',
+        mode:'markers',
+        marker:{ size:6, color:C }
+    }],{
+        scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}
     });
 }
 
-// Example: link to sliders
-['photo','wet','dry','mill','laser','film','ion'].forEach(id => {
+// ---------------- Link sliders ----------------
+const processingMethods = ['wet','dry','mill','laser','film','ion'];
+processingMethods.forEach(id=>{
     const slider = document.getElementById(id+'Depth');
-    slider.addEventListener('input', () => plotProcessingAtoms(id+'Plot', slider.value));
-    plotProcessingAtoms(id+'Plot', slider.value);
+    slider.addEventListener('input', ()=> plotTopDown(id+'Plot', slider.value, id));
+    plotTopDown(id+'Plot', slider.value, id);
 });
 </script>
+
 </body>
 </html>
