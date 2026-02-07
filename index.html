@@ -108,26 +108,33 @@
     updateDislocation();
 
     // ---------------- 2D Grain Boundary Model ----------------
-    const nx_g = 20, ny_g = 20;
-    function generateGrains(angleDeg) {
-      const X = [], Y = [], Z = [];
-      const angleRad = angleDeg * Math.PI / 180;
-      for (let i=0; i<nx_g; i++) {
+   function generateGrains(angleDeg) {
+    const X = [], Y = [], Z = [];
+    const angleRad = angleDeg * Math.PI / 180;
+
+    for (let i=0; i<nx_g; i++) {
         for (let j=0; j<ny_g; j++) {
-          // Grain 1
-          X.push(i);
-          Y.push(j);
-          Z.push(0);
-          // Grain 2 rotated by angle
-          const x_rot = i * Math.cos(angleRad) - j * Math.sin(angleRad) + nx_g/2;
-          const y_rot = i * Math.sin(angleRad) + j * Math.cos(angleRad);
-          X.push(x_rot);
-          Y.push(y_rot);
-          Z.push(1);  // separate plane
+            // Grain 1 (left)
+            X.push(i);
+            Y.push(j);
+            Z.push(0); // same plane
         }
-      }
-      return {X, Y, Z};
     }
+
+    for (let i=0; i<nx_g; i++) {
+        for (let j=0; j<ny_g; j++) {
+            // Grain 2 (right), rotated
+            const x_rot = i * Math.cos(angleRad) - j * Math.sin(angleRad) + nx_g/2;
+            const y_rot = i * Math.sin(angleRad) + j * Math.cos(angleRad);
+            X.push(x_rot);
+            Y.push(y_rot);
+            Z.push(0); // same plane
+        }
+    }
+
+    return {X, Y, Z};
+}
+
 
     function updateGrainBoundary() {
       const angle = parseFloat(document.getElementById("angle").value);
