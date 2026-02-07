@@ -286,15 +286,41 @@ plotPointDefect('frenkel','frenkelPlot');
 plotPointDefect('schottky','schottkyPlot');
 
 // ---------------- Material Processing ----------------
-function plotBlock(divId,depth){
-  const size=10,X=[],Y=[],Z=[],C=[];
-  for(let i=0;i<=size;i++) for(let j=0;j<=size;j++){X.push(i);Y.push(j); Z.push(size-depth*size); C.push('orange');}
-  Plotly.newPlot(divId,[{x:X,y:Y,z:Z,type:'scatter3d',mode:'markers',marker:{size:4,color:C}}],{scene:{xaxis:{title:'X'},yaxis:{title:'Y'},zaxis:{title:'Z'}}});
+function plotProcessingAtoms(divId, depth) {
+    const size = 10;  // number of atoms in each direction
+    let X = [], Y = [], Z = [], C = [];
+
+    for (let i = 0; i <= size; i++) {
+        for (let j = 0; j <= size; j++) {
+            for (let k = 0; k <= size; k++) {
+                // remove atoms below "depth * size" to simulate etching
+                if (k > depth * size) {
+                    X.push(i); 
+                    Y.push(j); 
+                    Z.push(k); 
+                    C.push('orange'); // remaining material
+                }
+            }
+        }
+    }
+
+    Plotly.newPlot(divId, [{
+        x: X,
+        y: Y,
+        z: Z,
+        type: 'scatter3d',
+        mode: 'markers',
+        marker: { size: 4, color: C }
+    }], {
+        scene: { xaxis: { title: 'X' }, yaxis: { title: 'Y' }, zaxis: { title: 'Z' } }
+    });
 }
-['photo','wet','dry','mill','laser','film','ion'].forEach(id=>{
-  const slider=document.getElementById(id+'Depth');
-  slider.addEventListener('input',()=>plotBlock(id+'Plot',slider.value));
-  plotBlock(id+'Plot',slider.value);
+
+// Example: link to sliders
+['photo','wet','dry','mill','laser','film','ion'].forEach(id => {
+    const slider = document.getElementById(id+'Depth');
+    slider.addEventListener('input', () => plotProcessingAtoms(id+'Plot', slider.value));
+    plotProcessingAtoms(id+'Plot', slider.value);
 });
 </script>
 </body>
